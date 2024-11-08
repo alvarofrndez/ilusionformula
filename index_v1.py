@@ -1,7 +1,6 @@
 import pygame
 import math
 import random
-import time
 
 # Inicializamos pygame
 pygame.init()
@@ -11,24 +10,19 @@ WIDTH, HEIGHT = 800, 600
 window = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Bola rebotando en el círculo")
 
-# FPS
-FPS = 90
-
 # Colores
 WHITE = (255, 255, 255)
 BLUE = (100, 100, 255)
 BLACK = (0, 0, 0)
 colors = [
-    (255, 0, 0),  # Rojo
-    (0, 255, 0),  # Verde
-    (0, 0, 255),  # Azul
-    (255, 255, 0),  # Amarillo
-    (255, 105, 180),  # Rosa (Hot Pink)
-    (0, 255, 255),  # Cian
-    (255, 165, 0),  # Naranja
-    (138, 43, 226),  # Azul Violeta
-    (255, 105, 180),  # Rosa claro
+    (100, 100, 255),
+    (255, 100, 100),
+    (100, 255, 100),
+    (255, 255, 100),
+    (255, 100, 255),
+    (100, 255, 255)
 ]
+
 last_color = BLUE
 
 # Fondo de la pantalla
@@ -63,13 +57,8 @@ gravity = 0.1  # Gravedad base
 number_of_collisions = 0
 total_of_colissions = 0
 
-# Canción
-pygame.mixer.init()
-pygame.mixer.music.load("Clean Bandit - Symphony.mp3")  # Reemplaza con la ruta de tu canción
-pygame.mixer.music.play(start=0, loops=-1)  # Reproduce la canción en bucle desde el principio
-
-last_bounce_time = time.time()  # Guardar el momento del último rebote
-bounce_threshold = .3  # Tiempo en segundos después del cual se reiniciará la canción
+# Cargar el sonido del rebote
+rebound_sound = pygame.mixer.Sound("sounds/2806__thecheeseman__hurt-pain-sounds/44429__thecheeseman__hurt2.wav")
 
 # Reloj para controlar FPS
 clock = pygame.time.Clock()
@@ -94,26 +83,19 @@ def moveBall():
     # Distancia al centro del círculo
     distance_to_center = math.sqrt((ball_x - circle_center[0]) ** 2 + (ball_y - circle_center[1]) ** 2)
     
-    # Comprobar el tiempo de la canción
-    current_time = time.time()
-
-    if (current_time - last_bounce_time > bounce_threshold):
-        # Detener la canción si ha pasado el tiempo límite sin rebote
-        pygame.mixer.music.stop()
-
     # Si la bola toca o pasa el borde del círculo
     if distance_to_center + ball_radius >= circle_radius:
         # Incrementamos el contador de colisiones
         number_of_collisions += 1
+
+        # Reproducimos el sonido de rebote
+        rebound_sound.play()  
 
         # Cambiamos los colores de la bola y el círculo
         chooseNewColor()
 
         # Creamos una onda expansiva
         createWave()
-
-        # Actualizar la canción
-        updateSong()
 
         # Calculamos el vector normal en el punto de colisión
         normal_x = (ball_x - circle_center[0]) / distance_to_center
@@ -147,7 +129,8 @@ def moveBall():
         ball_x -= overlap * normal_x
         ball_y -= overlap * normal_y
 
-def drawSmoothCircle(screen, color, position, radius, filled=False):
+def drawSmoothCircle(screen, color, position, radius):
+    # Crear una superficie temporal más grande para el círculo
     # Crear una superficie temporal más grande para el círculo
     scale_factor = 4  # Factor de escala para hacer el círculo más grande
     large_radius = radius * scale_factor
@@ -155,22 +138,17 @@ def drawSmoothCircle(screen, color, position, radius, filled=False):
     temp_surface = pygame.Surface((large_radius * 2, large_radius * 2), pygame.SRCALPHA)
 
     # Dibujar el círculo hueco en la superficie temporal
-    if not filled:
-        pygame.draw.circle(temp_surface, color, (large_radius, large_radius), large_radius, large_thickness)
-
-    else:
-        pygame.draw.circle(temp_surface, color, (large_radius, large_radius), large_radius)
-
+    pygame.draw.circle(temp_surface, color, (large_radius, large_radius), large_radius, large_thickness)
 
     # Escalar la superficie hacia abajo y blit (dibujar) en la pantalla
     smooth_circle = pygame.transform.smoothscale(temp_surface, (radius * 2, radius * 2))
     screen.blit(smooth_circle, (position[0] - radius, position[1] - radius))
 
-def drawSpaceBackground():
+def drawSpaceBackground(screen, stars):
     screen.fill(BLACK) 
-    # for star in stars:
-    #     x, y, size, color = star
-    #     pygame.draw.circle(screen, color, (x, y), size)
+    for star in stars:
+        x, y, size, color = star
+        pygame.draw.circle(screen, color, (x, y), size)
 
 def chooseNewColor():
     global ball_color, circle_color, last_color
@@ -208,67 +186,45 @@ def updateWaves():
             pygame.draw.circle(surface, color_with_alpha, circle_center, int(wave["radius"]), 2)
             window.blit(surface, (0, 0))
 
-
-def updateSong():
-    global last_bounce_time, resume_position
-
-    current_time = time.time()
-
-    time_since_last_bounce = current_time - last_bounce_time
-
-    if time_since_last_bounce > bounce_threshold:
-        # Reiniciar la canción desde el principio si pasó mucho tiempo sin rebotar
-        pygame.mixer.music.play(start=0)
-
-    # Actualizar el tiempo del último rebote
-    last_bounce_time = current_time
-
 # Bucle principal del juego
 running = True
 game_over = False
-time_start_game_over = 0
 
-def start(type):
-    global running, game_over, time_start_game_over
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
 
-    while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
+    if ball_radius >= circle_radius:
+        game_over = True
 
-        if ball_radius >= circle_radius:
-            game_over = True
+    # if not game_over:
+    moveBall()
+    
+    # Dibujar el fondo
+    drawSpaceBackground(screen, starts)
 
-        # if not game_over:
-        moveBall()
-        
-        # Dibujar el fondo
-        if type == 1:
-            drawSpaceBackground()
+    # Dibujar el círculo
+    drawSmoothCircle(window, circle_color, circle_center, circle_radius)
+    pygame.draw.circle(window, circle_color, circle_center, circle_radius, 2)
 
-        # Dibujar el círculo
-        drawSmoothCircle(window, circle_color, circle_center, circle_radius)
+    # Actualizar ondas expansivas
+    updateWaves()
+    
+    # Dibujar la bola
+    pygame.draw.circle(window, ball_color, (int(ball_x), int(ball_y)), ball_radius)
 
-        # Actualizar ondas expansivas
-        updateWaves()
-        
-        # Dibujar la bola
-        # pygame.draw.circle(window, WHITE, (int(ball_x), int(ball_y)), ball_radius + 1)
-        drawSmoothCircle(window, ball_color, (ball_x, ball_y), ball_radius, True)
+    # if game_over:
+    #     text = font.render("Juego Finalizado", True, BLACK)
+    #     text_rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
+    #     window.blit(text, text_rect)
+    
+    # Actualizar la pantalla
+    pygame.display.flip()
+    
+    # Controlar la velocidad de actualización
+    clock.tick(90)
 
-        if game_over:
-            if time_start_game_over == 0:
-                time_start_game_over = time.time()
-
-            if time.time() - time_start_game_over > 4:
-                running = False
-        
-        # Actualizar la pantalla
-        pygame.display.flip()
-        
-        # Controlar la velocidad de actualización
-        clock.tick(FPS)
-
-def end():
-    # Salir de pygame
-    pygame.quit()
+# Salir de pygame
+pygame.time.delay(2000)
+pygame.quit()
