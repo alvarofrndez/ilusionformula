@@ -72,6 +72,15 @@ pygame.mixer.music.play(start=0, loops=-1)  # Reproduce la canción en bucle des
 last_bounce_time = time.time()  # Guardar el momento del último rebote
 bounce_threshold = .3  # Tiempo en segundos después del cual se reiniciará la canción
 
+# Imagenes
+main_image = pygame.image.load("imagen1.png")
+secondary_image = pygame.image.load("imagen2.png")
+
+main_image = pygame.transform.scale(main_image, (150, 150))
+secondary_image = pygame.transform.scale(secondary_image, (150, 150))
+
+image_rect = main_image.get_rect(center=(WIDTH // 2, HEIGHT // 2))
+
 # Reloj para controlar FPS
 clock = pygame.time.Clock()
 
@@ -81,9 +90,12 @@ font = pygame.font.Font(None, 74)
 # Lista para las ondas expansivas
 waves = []
 
+# Configuración de partículas
+particles = []
+
 # Función para mover la bola
 def moveBall():
-    global ball_x, ball_y, ball_speed_x, ball_speed_y, ball_radius, gravity, number_of_collisions, total_of_colissions, game_over
+    global ball_x, ball_y, ball_speed_x, ball_speed_y, ball_radius, gravity, number_of_collisions, total_of_colissions, game_over, first_collision, game_over
     
     # Aplicamos la gravedad a la velocidad vertical
     ball_speed_y += gravity + (ball_radius / 1000)  # Más grande = más gravedad
@@ -94,13 +106,6 @@ def moveBall():
     
     # Distancia al centro del círculo
     distance_to_center = math.sqrt((ball_x - circle_center[0]) ** 2 + (ball_y - circle_center[1]) ** 2)
-    
-    # Comprobar el tiempo de la canción
-    current_time = time.time()
-
-    if (current_time - last_bounce_time > bounce_threshold):
-        # Detener la canción si ha pasado el tiempo límite sin rebote
-        pygame.mixer.music.stop()
 
     # Si la bola toca o pasa el borde del círculo
     if distance_to_center + ball_radius >= circle_radius:
@@ -115,6 +120,10 @@ def moveBall():
 
         # Actualizar la canción
         updateSong()
+
+        # Generar partículas
+        if not game_over:
+            generateParticles(ball_x, ball_y)  # Generar partículas en el borde izquierdo
 
         # Calculamos el vector normal en el punto de colisión
         normal_x = (ball_x - circle_center[0]) / distance_to_center
@@ -147,7 +156,7 @@ def moveBall():
         overlap = (distance_to_center + ball_radius) - circle_radius
         ball_x -= overlap * normal_x
         ball_y -= overlap * normal_y
-
+        
 def drawSmoothCircle(screen, color, position, radius, filled=False):
     # Crear una superficie temporal más grande para el círculo
     scale_factor = 4  # Factor de escala para hacer el círculo más grande
@@ -224,6 +233,31 @@ def updateSong():
     # Actualizar el tiempo del último rebote
     last_bounce_time = current_time
 
+def checkSongAndImage():
+    # Comprobar el tiempo de la canción
+    current_time = time.time()
+
+    if (current_time - last_bounce_time > bounce_threshold):
+        # Detener la canción si ha pasado el tiempo límite sin rebote
+        pygame.mixer.music.stop()
+        screen.blit(main_image, image_rect)
+    else:
+        screen.blit(secondary_image, image_rect)
+
+def generateParticles(x, y):
+    num_particles = 30  # Número de partículas que se crean
+    for _ in range(num_particles):
+        # Crear cada partícula con posición y velocidad aleatoria
+        angle = random.uniform(0, 2 * math.pi)  # Ángulo aleatorio
+        speed = random.uniform(1, 2)  # Velocidad aleatoria
+        particle_vel_x = math.cos(angle) * speed
+        particle_vel_y = math.sin(angle) * speed
+        particles.append({
+            "pos": [x, y],
+            "vel": [particle_vel_x, particle_vel_y],
+            "lifetime": random.randint(30, 50)  # Tiempo de vida de la partícula
+        })
+
 # Bucle principal del juego
 running = True
 game_over = False
@@ -252,10 +286,23 @@ def start(type):
 
         # Actualizar ondas expansivas
         updateWaves()
-        
+
+        for particle in particles[:]:
+            particle["pos"][0] += particle["vel"][0]
+            particle["pos"][1] += particle["vel"][1]
+            particle["lifetime"] -= 1
+            if particle["lifetime"] <= 0:
+                particles.remove(particle)
+
+        for particle in particles:
+            pos = (int(particle["pos"][0]), int(particle["pos"][1]))
+            pygame.draw.circle(screen, ball_color, pos, 3)
+
         # Dibujar la bola
         # pygame.draw.circle(window, WHITE, (int(ball_x), int(ball_y)), ball_radius + 1)
         drawSmoothCircle(window, ball_color, (ball_x, ball_y), ball_radius, True)
+
+        checkSongAndImage()
 
         if game_over and False:
             if time_start_game_over == 0:

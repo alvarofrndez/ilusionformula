@@ -4,4 +4,4 @@ SONGS = {
     "symphony": "Clean Bandit - Symphony.mp3",
 }
 
-SONG_PATH="songs/" + SONGS["symphony"]
+SONG_PATH="songs/" + SONGS["disobey"]
