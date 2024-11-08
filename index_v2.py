@@ -1,6 +1,7 @@
 import pygame
 import math
 import random
+import time
 
 # Inicializamos pygame
 pygame.init()
@@ -22,7 +23,6 @@ colors = [
     (255, 100, 255),
     (100, 255, 255)
 ]
-
 last_color = BLUE
 
 # Fondo de la pantalla
@@ -60,6 +60,14 @@ total_of_colissions = 0
 # Cargar el sonido del rebote
 rebound_sound = pygame.mixer.Sound("sounds/2806__thecheeseman__hurt-pain-sounds/44429__thecheeseman__hurt2.wav")
 
+# Canción
+pygame.mixer.init()
+pygame.mixer.music.load("Clean Bandit - Symphony.mp3")  # Reemplaza con la ruta de tu canción
+pygame.mixer.music.play(start=0, loops=-1)  # Reproduce la canción en bucle desde el principio
+
+last_bounce_time = time.time()  # Guardar el momento del último rebote
+bounce_threshold = .3  # Tiempo en segundos después del cual se reiniciará la canción
+
 # Reloj para controlar FPS
 clock = pygame.time.Clock()
 
@@ -83,19 +91,29 @@ def moveBall():
     # Distancia al centro del círculo
     distance_to_center = math.sqrt((ball_x - circle_center[0]) ** 2 + (ball_y - circle_center[1]) ** 2)
     
+    # Comprobar el tiempo de la canción
+    current_time = time.time()
+
+    if (current_time - last_bounce_time > bounce_threshold):
+        # Detener la canción si ha pasado el tiempo límite sin rebote
+        pygame.mixer.music.stop()
+
     # Si la bola toca o pasa el borde del círculo
     if distance_to_center + ball_radius >= circle_radius:
         # Incrementamos el contador de colisiones
         number_of_collisions += 1
 
         # Reproducimos el sonido de rebote
-        rebound_sound.play()  
+        # rebound_sound.play()  
 
         # Cambiamos los colores de la bola y el círculo
         chooseNewColor()
 
         # Creamos una onda expansiva
         createWave()
+
+        # Actualizar la canción
+        updateSong()
 
         # Calculamos el vector normal en el punto de colisión
         normal_x = (ball_x - circle_center[0]) / distance_to_center
@@ -185,6 +203,21 @@ def updateWaves():
             color_with_alpha = (*wave["color"], wave["alpha"])
             pygame.draw.circle(surface, color_with_alpha, circle_center, int(wave["radius"]), 2)
             window.blit(surface, (0, 0))
+
+
+def updateSong():
+    global last_bounce_time, resume_position
+
+    current_time = time.time()
+
+    time_since_last_bounce = current_time - last_bounce_time
+
+    if time_since_last_bounce > bounce_threshold:
+        # Reiniciar la canción desde el principio si pasó mucho tiempo sin rebotar
+        pygame.mixer.music.play(start=0)
+
+    # Actualizar el tiempo del último rebote
+    last_bounce_time = current_time
 
 # Bucle principal del juego
 running = True
