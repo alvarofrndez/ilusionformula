@@ -2,6 +2,7 @@ import pygame
 import math
 import random
 import time
+import songs
 
 # Inicializamos pygame
 pygame.init()
@@ -65,7 +66,7 @@ total_of_colissions = 0
 
 # Canción
 pygame.mixer.init()
-pygame.mixer.music.load("Clean Bandit - Symphony.mp3")  # Reemplaza con la ruta de tu canción
+pygame.mixer.music.load(songs.SONG_PATH)  # Reemplaza con la ruta de tu canción
 pygame.mixer.music.play(start=0, loops=-1)  # Reproduce la canción en bucle desde el principio
 
 last_bounce_time = time.time()  # Guardar el momento del último rebote
@@ -256,7 +257,7 @@ def start(type):
         # pygame.draw.circle(window, WHITE, (int(ball_x), int(ball_y)), ball_radius + 1)
         drawSmoothCircle(window, ball_color, (ball_x, ball_y), ball_radius, True)
 
-        if game_over:
+        if game_over and False:
             if time_start_game_over == 0:
                 time_start_game_over = time.time()
 
