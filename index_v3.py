@@ -243,7 +243,7 @@ while running:
 
     # Dibujar el círculo
     drawSmoothCircle(window, circle_color, circle_center, circle_radius)
-    pygame.draw.circle(window, circle_color, circle_center, circle_radius, 2)
+    # pygame.draw.circle(window, circle_color, circle_center, circle_radius, 2)
 
     # Actualizar ondas expansivas
     updateWaves()
