@@ -235,7 +235,6 @@ while running:
     moveBall()
     
     # Dibujar el fondo
-    drawSpaceBackground(screen, starts)
 
     # Dibujar el círculo
     drawSmoothCircle(window, circle_color, circle_center, circle_radius)
@@ -259,5 +258,7 @@ while running:
     clock.tick(90)
 
 # Salir de pygame
+drawSpaceBackground(screen, starts)
+
 pygame.time.delay(2000)
 pygame.quit()
