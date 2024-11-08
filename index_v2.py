@@ -16,12 +16,15 @@ WHITE = (255, 255, 255)
 BLUE = (100, 100, 255)
 BLACK = (0, 0, 0)
 colors = [
-    (100, 100, 255),
-    (255, 100, 100),
-    (100, 255, 100),
-    (255, 255, 100),
-    (255, 100, 255),
-    (100, 255, 255)
+    (255, 0, 0),  # Rojo
+    (0, 255, 0),  # Verde
+    (0, 0, 255),  # Azul
+    (255, 255, 0),  # Amarillo
+    (255, 105, 180),  # Rosa (Hot Pink)
+    (0, 255, 255),  # Cian
+    (255, 165, 0),  # Naranja
+    (138, 43, 226),  # Azul Violeta
+    (255, 105, 180),  # Rosa claro
 ]
 last_color = BLUE
 
@@ -222,6 +225,7 @@ def updateSong():
 # Bucle principal del juego
 running = True
 game_over = False
+time_start_game_over = 0
 
 while running:
     for event in pygame.event.get():
@@ -244,12 +248,15 @@ while running:
     updateWaves()
     
     # Dibujar la bola
+    pygame.draw.circle(window, WHITE, (int(ball_x), int(ball_y)), ball_radius + 1)
     pygame.draw.circle(window, ball_color, (int(ball_x), int(ball_y)), ball_radius)
 
-    # if game_over:
-    #     text = font.render("Juego Finalizado", True, BLACK)
-    #     text_rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
-    #     window.blit(text, text_rect)
+    if game_over:
+        if time_start_game_over == 0:
+            time_start_game_over = time.time()
+
+        if time.time() - time_start_game_over > 2:
+            running = False
     
     # Actualizar la pantalla
     pygame.display.flip()
@@ -259,6 +266,5 @@ while running:
 
 # Salir de pygame
 drawSpaceBackground(screen, starts)
-
 pygame.time.delay(2000)
 pygame.quit()
