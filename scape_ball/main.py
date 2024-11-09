@@ -25,6 +25,7 @@ ball = Ball(screen, circles)
 
 last_ring_spawn_time = time.time()
 ring_spawn_interval = .5
+interval = 0
 
 running = True
 game_over = False
@@ -52,8 +53,8 @@ while running:
         circles.append(Circle(screen, circle_radius, color, diss))
         last_ring_spawn_time = current_time
         diss += .01
-        interval = random.randint(1, 7)
-        if interval == 1:
+        interval += 1
+        if interval % 8 == 0:
             ring_spawn_interval -= .02
 
     # Comprobar si el juego termina
