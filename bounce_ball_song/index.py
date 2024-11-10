@@ -143,7 +143,7 @@ def checkCollision(distance_to_center, type):
     if game_over == False:
         # Incrementamos el tamaño de la bola
         if type == 0:
-            circle_radius -= 2
+            circle_radius -= 1
         else:    
             ball_radius += 2
     

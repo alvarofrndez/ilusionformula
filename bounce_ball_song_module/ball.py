@@ -39,14 +39,15 @@ class Ball:
         self.color = random.choice(colors.COLORS)
         self.circle.color = self.color
 
+        # Genera onda en el círculo
         self.circle.createWave()
-
-        # Genera partículas en el punto de colisión
-        self.particle_system.generateParticles(self.x, self.y)
 
         # Calcula el vector normal en el punto de colisión
         normal_x = (self.x - self.circle.center[0]) / distance_to_center
         normal_y = (self.y - self.circle.center[1]) / distance_to_center
+
+        # Genera partículas en el punto de colisión
+        self.particle_system.generateParticles(self.x, self.y)
         
         # Refleja la velocidad de la bola
         dot_product = self.speed_x * normal_x + self.speed_y * normal_y
